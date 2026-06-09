@@ -1,4 +1,4 @@
-# Kidney CT Radiomics Pipeline
+# CT radiomics-based prediction model for baseline serum creatinine
 
 Reference implementation: deep-learning kidney segmentation, morphological
 **shape** feature extraction, and regression modeling of baseline renal function.
