@@ -1,0 +1,22 @@
+# Never commit medical imaging data or derived patient-level outputs.
+data/
+*.nii
+*.nii.gz
+*.dcm
+*.csv
+
+# Model weights (public backbone is downloaded; fine-tuned weights are private).
+weights/
+*.pth
+*.pt
+
+# Results / generated tables
+results/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+*.egg-info/

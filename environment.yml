@@ -1,0 +1,19 @@
+# Single conda environment that runs the WHOLE pipeline (steps 00-06).
+#
+#   conda env create -f environment.yml
+#   conda activate kidney-radiomics
+#
+# Python 3.9 is the version where pyradiomics, localthickness, torch and tabpfn
+# all coexist. pyradiomics is pip-only and has no prebuilt wheel for every
+# platform, so conda provides C/C++ compilers to build it from source; all
+# Python packages come from pip via requirements.txt.
+name: kidney-radiomics
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - c-compiler        # build pyradiomics from source
+  - cxx-compiler
+  - pip:
+      - -r requirements.txt

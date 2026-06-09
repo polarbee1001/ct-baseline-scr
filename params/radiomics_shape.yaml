@@ -1,0 +1,31 @@
+# PyRadiomics settings: SHAPE features only, restricted to the final variable set.
+#
+# This study extracts only morphological (shape) radiomics features; first-order
+# and texture classes, and the LoG/Wavelet image filters, are NOT computed or
+# used. Shape features are intensity-independent, so only the Original image and
+# the kidney mask are needed.
+#
+# The shape list below is the exact subset used downstream (11 features). The
+# remaining three final variables -- mean local thickness, convexity, solidity
+# -- are computed separately in shape_features.py.
+
+imageType:
+  Original: {}
+
+featureClass:
+  shape:
+    - MeshVolume                # Mesh volume
+    - SurfaceArea               # Surface area
+    - SurfaceVolumeRatio        # Surface area-to-volume ratio
+    - Sphericity                # Sphericity
+    - Maximum3DDiameter         # Maximum 3D diameter
+    - Maximum2DDiameterColumn   # Maximum 2D column diameter
+    - Maximum2DDiameterSlice    # Maximum 2D slice diameter
+    - MinorAxisLength           # Minor axis length
+    - LeastAxisLength           # Least axis length
+    - Elongation                # Elongation
+    - Flatness                  # Flatness
+
+setting:
+  # Foreground label value in the mask.
+  label: 1

@@ -1,0 +1,88 @@
+# Central configuration for the kidney radiomics pipeline.
+# All paths are relative to the repository root (the `public/` folder).
+# Provide your own data under data/ (no data is bundled). Override any value on
+# the command line, e.g.:
+#   python scripts/03_extract_radiomics.py --images data/images --masks data/masks
+
+# ----------------------------------------------------------------------------
+# Data layout (user-provided; see README for the expected format)
+# ----------------------------------------------------------------------------
+data:
+  # CT volumes (NIfTI), isotropically resampled. One file per case: <id>.nii.gz
+  images_dir: data/images
+  # Bilateral kidney masks. File name: <id><mask_suffix>.nii.gz
+  masks_dir: data/masks
+  # Suffix appended to the case id to form the mask file name (before extension).
+  mask_suffix: "_mask"
+  # NIfTI extension expected on load.
+  extension: ".nii.gz"
+  # Decathlon-style datalist (train/val/test) for segmentation; build with
+  # scripts/00_prepare_datalist.py.
+  datalist_json: data/dataset.json
+  # Clinical variables + regression target (one row per case, key column = case_id).
+  clinical_csv: data/clinical.csv
+
+# ----------------------------------------------------------------------------
+# Segmentation (MONAI SwinUNETR)
+# ----------------------------------------------------------------------------
+segmentation:
+  # Architecture must match the checkpoint (study values shown).
+  roi_size: [96, 96, 96]     # study: 96^3
+  feature_size: 48           # study: 48
+  in_channels: 1
+  out_channels: 2            # background + kidney
+  hu_window: [-175, 250]     # study: [-175, 250] -> 0..1
+  # Self-supervised Swin backbone (public). Download instructions in README.
+  pretrained_swinvit: weights/model_swinvit.pt
+  # Where the best fine-tuned checkpoint is written / read.
+  checkpoint: weights/best_metric_model.pth
+  # Defaults are minimal (low resource); the comment gives the value used in the study.
+  max_iters: 2000            # study: 50000
+  eval_interval: 200         # study: 500
+  learning_rate: 1.0e-4      # study: 1e-4
+  weight_decay: 1.0e-5       # study: 1e-5
+  sw_batch_size: 1           # study: 4
+  infer_overlap: 0.25        # study: 0.8
+  cache_rate: 0.0            # study: 1.0
+
+# ----------------------------------------------------------------------------
+# Feature extraction
+# ----------------------------------------------------------------------------
+radiomics:
+  # Only shape features are extracted/used (no first-order, texture, LoG, Wavelet).
+  params: params/radiomics_shape.yaml
+
+# ----------------------------------------------------------------------------
+# Modeling (regression, RepeatedStratifiedKFold cross-validation)
+# ----------------------------------------------------------------------------
+modeling:
+  # Target is modelled in log space; metrics are reported on the
+  # back-transformed (exp) original scale. Set log_target: false to model raw.
+  target: Baseline_Cr_log      # column name in the modeling CSV
+  log_target: true
+  cv_splits: 5                 # RepeatedStratifiedKFold n_splits
+  cv_repeats: 3                # RepeatedStratifiedKFold n_repeats
+  random_state: 42
+  mode: default                # default | hpo   (TabPFN PHE via --tabpfn-phe)
+  n_trials: 30                 # Optuna trials per model when mode == hpo
+  # TabPFN post-hoc ensemble (only used with --tabpfn-phe; needs tabpfn-extensions).
+  phe_time: 120                # search budget (seconds)
+  phe_n_models: 20             # ensemble size
+  phe_presets: null            # e.g. "default" | "avoid_overfitting"
+  # Local TabPFN checkpoint to skip the download/license step (null -> auto).
+  tabpfn_model_path: null
+  tabpfn_model_version: v2.5    # model version for TabPFN HPO/PHE wrappers
+  # Models to run (subset of: LinearRegression, LASSO, ElasticNet, SVR,
+  # RandomForest, XGBoost, LightGBM, TabPFN). Leave empty to use all installed.
+  models: []
+  # Clinical variables to ADD to the 14 imaging features. Pick any columns that
+  # exist in the modeling CSV; leave [] to model with imaging features only.
+  clinical_columns: [AGE, SEX, BMI, BUN, Hb, Albumin, P, Ca, tCO2, K, Cr_48h_log, DM, HTN]
+  # Optional external test CSV (same schema as clinical_csv). null -> val only.
+  external_test_csv: null
+
+# ----------------------------------------------------------------------------
+# Output
+# ----------------------------------------------------------------------------
+output:
+  dir: results
