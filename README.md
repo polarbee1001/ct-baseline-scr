@@ -1,7 +1,7 @@
-# CT radiomics-based prediction model for baseline serum creatinine
+# CT radiomics-based prediction model for baseline SCr
 
 Reference implementation: deep-learning kidney segmentation, morphological
-**shape** feature extraction, and regression modeling of baseline renal function.
+shape feature extraction, and regression modeling of baseline renal function.
 
 **No patient data is included** — provide your own NIfTI images, masks, and a
 clinical table (formats below).
